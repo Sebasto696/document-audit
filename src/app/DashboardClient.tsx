@@ -8,10 +8,12 @@ import { Archive, GitFork, Layers } from 'lucide-react'
 
 export default function DashboardClient({
   initialDocuments,
-  userRole
+  userRole,
+  currentUserId
 }: {
   initialDocuments: any[]
   userRole: string
+  currentUserId: string
 }) {
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null)
   const [history, setHistory] = useState<any[]>([])
@@ -81,7 +83,7 @@ export default function DashboardClient({
                     document={doc}
                     isSelected={selectedDoc === doc.id}
                     onClick={() => handleSelectDocument(doc.id)}
-                    showUpdateForm={isCompany}
+                    showUpdateForm={isCompany && doc.uploaderId === currentUserId}
                   />
                 ))
               )}
