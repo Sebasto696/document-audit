@@ -7,18 +7,30 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-// 1. Usuarios (Empresa y Auditores)
+// 1. Empresas
+model Company {
+  id        String     @id @default(cuid())
+  name      String
+  users     User[]
+  documents Document[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// 2. Usuarios (Empresa y Auditores)
 model User {
   id        String     @id @default(cuid())
   name      String
   email     String     @unique
-  password  String     @default("") // TODO: Remove default after testing
+  password  String     @default("") 
   role      String     @default("COMPANY") // COMPANY, AUDITOR
+  companyId String
+  company   Company    @relation(fields: [companyId], references: [id])
   documents Document[]
   auditLogs AuditLog[]
 }
 
-// 2. Documentos
+// 3. Documentos
 model Document {
   id           String     @id @default(cuid())
   title        String
@@ -26,6 +38,8 @@ model Document {
   fileUrl      String     // Ruta donde se guardó el archivo
   currentHash  String     @unique // Hash SHA-256 actual del archivo
   status       String     @default("UPLOADED") // UPLOADED, MODIFIED, VERIFIED
+  companyId    String
+  company      Company    @relation(fields: [companyId], references: [id])
   uploaderId   String
   uploader     User       @relation(fields: [uploaderId], references: [id])
   createdAt    DateTime   @default(now())
@@ -33,7 +47,7 @@ model Document {
   history      AuditLog[]
 }
 
-// 3. Historial de Auditoría (Inmutable)
+// 4. Historial de Auditoría (Inmutable)
 model AuditLog {
   id          String   @id @default(cuid())
   documentId  String

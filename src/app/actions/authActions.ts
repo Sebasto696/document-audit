@@ -26,18 +26,31 @@ export async function register(formData: FormData) {
   try {
     const hashedPassword = await bcrypt.hash(password, 10)
     
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: 'COMPANY', 
-      },
+    // Create company and user in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const company = await tx.company.create({
+        data: {
+          name, // Using name for company name too for now as per UI
+        }
+      })
+
+      const user = await tx.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+          role: 'COMPANY',
+          companyId: company.id,
+        },
+      })
+
+      return { user, company }
     })
 
-    await createSession(user.id, user.role, user.name)
+    await createSession(result.user.id, result.user.role, result.user.name, result.company.id)
     
   } catch (error) {
+    console.error('Registration error:', error)
     return { error: 'Error al crear la cuenta. Intenta nuevamente.' }
   }
 
@@ -66,7 +79,7 @@ export async function login(formData: FormData) {
     return { error: 'Credenciales inválidas.' }
   }
 
-  await createSession(user.id, user.role, user.name)
+  await createSession(user.id, user.role, user.name, user.companyId)
   redirect('/')
 }
 
