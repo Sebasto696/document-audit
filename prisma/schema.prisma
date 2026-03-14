@@ -35,6 +35,7 @@ model Document {
   id           String     @id @default(cuid())
   title        String
   description  String?
+  category     String     @default("General") // Nómina, Recursos Humanos, Producción, Administrativo, General
   fileUrl      String     // Ruta donde se guardó el archivo
   currentHash  String     @unique // Hash SHA-256 actual del archivo
   status       String     @default("UPLOADED") // UPLOADED, MODIFIED, VERIFIED

@@ -10,6 +10,7 @@ type DocumentProps = {
     id: string
     title: string
     description: string | null
+    category: string
     currentHash: string
     status: string
     createdAt: Date
@@ -90,10 +91,18 @@ export function DocumentCard({
           }}>
             <FileText size={16} color={isSelected ? '#3ECF8E' : '#666'} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 13, fontWeight: 500, color: '#ededed', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {document.title}
-            </p>
+          <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <p style={{ fontSize: 13, fontWeight: 500, color: '#ededed', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {document.title}
+              </p>
+              <span style={{
+                fontSize: 10, fontWeight: 500, color: '#999', background: 'rgba(255,255,255,0.06)', 
+                padding: '2px 6px', borderRadius: 4, whiteSpace: 'nowrap'
+              }}>
+                {document.category}
+              </span>
+            </div>
             <p style={{ fontSize: 12, color: '#555', marginTop: 1 }}>
               {format(new Date(document.createdAt), 'dd MMM yyyy')}
             </p>

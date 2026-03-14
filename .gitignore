@@ -11,3 +11,7 @@ out/
 
 # User uploaded files
 public/uploads/
+
+# Local database
+prisma/dev.db
+prisma/dev.db-journal
