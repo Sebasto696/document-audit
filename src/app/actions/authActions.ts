@@ -26,13 +26,21 @@ export async function register(formData: FormData) {
   try {
     const hashedPassword = await bcrypt.hash(password, 10)
     
-    // Create company and user in a transaction
+    // Create or find company and create user in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      const company = await tx.company.create({
-        data: {
-          name, // Using name for company name too for now as per UI
-        }
+      // Find existing company by exact name (case insensitive handling can be complex in SQLite, using exact match for simplicity as requested)
+      let company = await tx.company.findFirst({
+        where: { name }
       })
+
+      // If company doesn't exist, create it
+      if (!company) {
+        company = await tx.company.create({
+          data: {
+            name, 
+          }
+        })
+      }
 
       const user = await tx.user.create({
         data: {

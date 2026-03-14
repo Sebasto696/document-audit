@@ -89,7 +89,7 @@ export default async function Home() {
         </div>
 
         {/* Dashboard */}
-        <DashboardClient initialDocuments={documents} userRole={session?.role || 'COMPANY'} />
+        <DashboardClient initialDocuments={documents} userRole={session?.role || 'COMPANY'} currentUserId={session?.userId || ''} />
       </div>
 
     </div>
