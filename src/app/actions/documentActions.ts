@@ -48,6 +48,7 @@ export async function uploadDocument(formData: FormData) {
         description,
         fileUrl,
         currentHash,
+        companyId: session.companyId,
         uploaderId: session.userId,
         history: {
           create: {
@@ -79,7 +80,7 @@ export async function getDocuments() {
   // If COMPANY, only show their own documents
   if (session.role === 'COMPANY') {
     return await prisma.document.findMany({
-      where: { uploaderId: session.userId },
+      where: { companyId: session.companyId },
       include: { uploader: true },
       orderBy: { createdAt: 'desc' }
     })
