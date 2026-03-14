@@ -1,0 +1,111 @@
+[00:00:01.037] Server  LOG     ✓ Ready in 827ms
+[00:00:07.616] Server  LOG     ○ Compiling /login ...
+[00:00:10.213] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:18.942] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:10:06.572] Server  LOG     ✓ Compiled in 225ms
+[00:10:17.312] Server  LOG     ✓ Compiled in 95ms
+[00:12:36.654] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:13:31.379] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:16:32.098] Server  LOG     ✓ Compiled in 176ms
+[00:16:32.442] Browser ERROR   ./src/components/AuditTimeline.tsx:31:33
+Ecmascript file had an error
+  29 | import { useState, useTransition, useRef } from 'react'
+  30 | import { uploadNewVersion } from '@/app/actions/documentActions'
+> 31 | import { FileText, ShieldCheck, Activity, User as UserIcon, UploadCloud, Loader2 } from 'lucide-react'
+     |                                 ^^^^^^^^
+  32 |
+  33 | export function DocumentCard({ 
+  34 |   document, 
+
+the name `Activity` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/AuditTimeline.tsx [Client Component Browser]
+    ./src/app/DashboardClient.tsx [Client Component Browser]
+    ./src/app/DashboardClient.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/AuditTimeline.tsx [Client Component SSR]
+    ./src/app/DashboardClient.tsx [Client Component SSR]
+    ./src/app/DashboardClient.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+[00:16:32.442] Browser ERROR   ./src/components/AuditTimeline.tsx:31:10
+Ecmascript file had an error
+  29 | import { useState, useTransition, useRef } from 'react'
+  30 | import { uploadNewVersion } from '@/app/actions/documentActions'
+> 31 | import { FileText, ShieldCheck, Activity, User as UserIcon, UploadCloud, Loader2 } from 'lucide-react'
+     |          ^^^^^^^^
+  32 |
+  33 | export function DocumentCard({ 
+  34 |   document, 
+
+the name `FileText` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/AuditTimeline.tsx [Client Component Browser]
+    ./src/app/DashboardClient.tsx [Client Component Browser]
+    ./src/app/DashboardClient.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/AuditTimeline.tsx [Client Component SSR]
+    ./src/app/DashboardClient.tsx [Client Component SSR]
+    ./src/app/DashboardClient.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+[00:16:32.442] Browser ERROR   ./src/components/AuditTimeline.tsx:31:20
+Ecmascript file had an error
+  29 | import { useState, useTransition, useRef } from 'react'
+  30 | import { uploadNewVersion } from '@/app/actions/documentActions'
+> 31 | import { FileText, ShieldCheck, Activity, User as UserIcon, UploadCloud, Loader2 } from 'lucide-react'
+     |                    ^^^^^^^^^^^
+  32 |
+  33 | export function DocumentCard({ 
+  34 |   document, 
+
+the name `ShieldCheck` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/AuditTimeline.tsx [Client Component Browser]
+    ./src/app/DashboardClient.tsx [Client Component Browser]
+    ./src/app/DashboardClient.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/AuditTimeline.tsx [Client Component SSR]
+    ./src/app/DashboardClient.tsx [Client Component SSR]
+    ./src/app/DashboardClient.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+[00:16:32.442] Browser ERROR   ./src/components/AuditTimeline.tsx:31:51
+Ecmascript file had an error
+  29 | import { useState, useTransition, useRef } from 'react'
+  30 | import { uploadNewVersion } from '@/app/actions/documentActions'
+> 31 | import { FileText, ShieldCheck, Activity, User as UserIcon, UploadCloud, Loader2 } from 'lucide-react'
+     |                                                   ^^^^^^^^
+  32 |
+  33 | export function DocumentCard({ 
+  34 |   document, 
+
+the name `UserIcon` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./src/components/AuditTimeline.tsx [Client Component Browser]
+    ./src/app/DashboardClient.tsx [Client Component Browser]
+    ./src/app/DashboardClient.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/AuditTimeline.tsx [Client Component SSR]
+    ./src/app/DashboardClient.tsx [Client Component SSR]
+    ./src/app/DashboardClient.tsx [Server Component]
+    ./src/app/page.tsx [Server Component]
+[00:17:02.441] Browser ERROR   uncaughtError: ReferenceError: format is not defined
+[00:17:20.673] Server  LOG     ✓ Compiled in 92ms
+[00:17:20.674] Server  WARN    ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:17:20.985] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:17:55.196] Server  LOG     ✓ Compiled in 85ms
+[00:19:57.796] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

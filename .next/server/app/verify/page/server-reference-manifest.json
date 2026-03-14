@@ -1,0 +1,20 @@
+{
+  "node": {
+    "403933fd2d96d7e2333da4bda817901ab840f8a1e9": {
+      "workers": {
+        "app/verify/page": {
+          "moduleId": 85007,
+          "async": false,
+          "exportedName": "verifyDocumentHash",
+          "filename": "src/app/actions/verifyActions.ts"
+        }
+      },
+      "layer": {
+        "app/verify/page": "action-browser"
+      },
+      "exportedName": "verifyDocumentHash",
+      "filename": "src/app/actions/verifyActions.ts"
+    }
+  },
+  "edge": {}
+}

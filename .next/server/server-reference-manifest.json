@@ -1,0 +1,140 @@
+{
+  "node": {
+    "00b871358e2658f64df4c1d30e3e89ba56ee07efb6": {
+      "workers": {
+        "app/page": {
+          "moduleId": 35252,
+          "async": false,
+          "exportedName": "getDocuments",
+          "filename": "src/app/actions/documentActions.ts"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "filename": "src/app/actions/documentActions.ts",
+      "exportedName": "getDocuments"
+    },
+    "409d30fd6f71858aa209b02da1968f2250894a49b2": {
+      "workers": {
+        "app/page": {
+          "moduleId": 35252,
+          "async": false,
+          "exportedName": "getDocumentHistory",
+          "filename": "src/app/actions/documentActions.ts"
+        }
+      },
+      "layer": {
+        "app/page": "action-browser"
+      },
+      "filename": "src/app/actions/documentActions.ts",
+      "exportedName": "getDocumentHistory"
+    },
+    "40a9bb2c9977450ce4ccd8430299c1b3b97a5e2d3b": {
+      "workers": {
+        "app/page": {
+          "moduleId": 35252,
+          "async": false,
+          "exportedName": "uploadDocument",
+          "filename": "src/app/actions/documentActions.ts"
+        }
+      },
+      "layer": {
+        "app/page": "action-browser"
+      },
+      "filename": "src/app/actions/documentActions.ts",
+      "exportedName": "uploadDocument"
+    },
+    "60b20324b2947cde2726e9e029f3d97e72623f581c": {
+      "workers": {
+        "app/page": {
+          "moduleId": 35252,
+          "async": false,
+          "exportedName": "uploadNewVersion",
+          "filename": "src/app/actions/documentActions.ts"
+        }
+      },
+      "layer": {
+        "app/page": "action-browser"
+      },
+      "filename": "src/app/actions/documentActions.ts",
+      "exportedName": "uploadNewVersion"
+    },
+    "00c8ff8876d6b25d487c5115bb5b9d92695e46e240": {
+      "workers": {
+        "app/page": {
+          "moduleId": 35252,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "src/app/actions/authActions.ts"
+        }
+      },
+      "layer": {
+        "app/page": "rsc"
+      },
+      "filename": "src/app/actions/authActions.ts",
+      "exportedName": "logout"
+    },
+    "4041dd3a24b88ccb4a8ceb2ac08794efd85aac3d4e": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": 78334,
+          "async": false,
+          "exportedName": "login",
+          "filename": "src/app/actions/authActions.ts"
+        },
+        "app/page": {
+          "moduleId": 35252,
+          "async": false,
+          "exportedName": "login",
+          "filename": "src/app/actions/authActions.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "action-browser",
+        "app/page": "rsc"
+      },
+      "filename": "src/app/actions/authActions.ts",
+      "exportedName": "login"
+    },
+    "40ad5da22b7947576f8490b97d3d496a7107941c82": {
+      "workers": {
+        "app/page": {
+          "moduleId": 35252,
+          "async": false,
+          "exportedName": "register",
+          "filename": "src/app/actions/authActions.ts"
+        },
+        "app/register/page": {
+          "moduleId": 76873,
+          "async": false,
+          "exportedName": "register",
+          "filename": "src/app/actions/authActions.ts"
+        }
+      },
+      "layer": {
+        "app/page": "rsc",
+        "app/register/page": "action-browser"
+      },
+      "filename": "src/app/actions/authActions.ts",
+      "exportedName": "register"
+    },
+    "403933fd2d96d7e2333da4bda817901ab840f8a1e9": {
+      "workers": {
+        "app/verify/page": {
+          "moduleId": 85007,
+          "async": false,
+          "exportedName": "verifyDocumentHash",
+          "filename": "src/app/actions/verifyActions.ts"
+        }
+      },
+      "layer": {
+        "app/verify/page": "action-browser"
+      },
+      "filename": "src/app/actions/verifyActions.ts",
+      "exportedName": "verifyDocumentHash"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "HYwd5zs84ITnFMgk2kI3pvzR7bqT+K/v/FXmjuLhiEE="
+}

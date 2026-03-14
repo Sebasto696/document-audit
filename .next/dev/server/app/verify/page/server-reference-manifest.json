@@ -1,0 +1,20 @@
+{
+  "node": {
+    "4091a0d1dc0646ae264c09032ccf12e4a135c254db": {
+      "workers": {
+        "app/verify/page": {
+          "moduleId": "[project]/.next-internal/server/app/verify/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/verifyActions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "verifyDocumentHash",
+          "filename": "src/app/actions/verifyActions.ts"
+        }
+      },
+      "layer": {
+        "app/verify/page": "action-browser"
+      },
+      "exportedName": "verifyDocumentHash",
+      "filename": "src/app/actions/verifyActions.ts"
+    }
+  },
+  "edge": {}
+}

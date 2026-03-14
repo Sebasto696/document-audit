@@ -1,0 +1,20 @@
+{
+  "node": {
+    "40ad5da22b7947576f8490b97d3d496a7107941c82": {
+      "workers": {
+        "app/register/page": {
+          "moduleId": 76873,
+          "async": false,
+          "exportedName": "register",
+          "filename": "src/app/actions/authActions.ts"
+        }
+      },
+      "layer": {
+        "app/register/page": "action-browser"
+      },
+      "exportedName": "register",
+      "filename": "src/app/actions/authActions.ts"
+    }
+  },
+  "edge": {}
+}
