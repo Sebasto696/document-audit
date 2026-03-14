@@ -8,7 +8,9 @@ export default function UploadDocumentForm() {
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
+  const [userRole, setUserRole] = useState<string | null>(null) // We don't have userRole here directly, but it's fine, we just need to add category
   const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('General')
   const [isUploading, setIsUploading] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,12 +49,13 @@ export default function UploadDocumentForm() {
     formData.append('file', file)
     formData.append('title', title)
     formData.append('description', description)
+    formData.append('category', category)
 
     try {
       const result = await uploadDocument(formData)
       if (result.success) {
         setSuccess('¡Documento registrado con éxito! El hash SHA-256 ya forma parte del registro inmutable.')
-        setFile(null); setTitle(''); setDescription('')
+        setFile(null); setTitle(''); setDescription(''); setCategory('General')
       } else {
         setError(result.error || 'No se pudo completar el registro. Intenta nuevamente.')
       }
@@ -126,6 +129,24 @@ export default function UploadDocumentForm() {
               className="sb-input"
               style={{ resize: 'vertical', minHeight: 72 }}
             />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: 13, color: '#9e9e9e', marginBottom: 6, fontWeight: 500 }}>
+              Categoría
+            </label>
+            <select
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+              className="sb-input"
+              style={{ appearance: 'auto' }}
+            >
+              <option value="General">General</option>
+              <option value="Nómina">Nómina</option>
+              <option value="Recursos Humanos">Recursos Humanos</option>
+              <option value="Producción">Producción</option>
+              <option value="Administrativo">Administrativo</option>
+            </select>
           </div>
 
           {/* Drop Zone */}
