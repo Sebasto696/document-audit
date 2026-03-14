@@ -1,88 +1,106 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState } from 'react'
 import { login } from '@/app/actions/authActions'
 import Link from 'next/link'
-import { Archive, ArrowRight, Lock } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
-// Wrap login in a custom action that returns a state object
-// the useActionState signature is (action, initialState)
-// we map our actual action signature so it conforms
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(async (prevState: any, formData: FormData) => {
     return await login(formData)
   }, { error: '' })
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0f172a] to-[#0f172a]">
-      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700">
-        
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-blue-500/20 border border-white/10">
-            <Lock className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">Bienvenido de nuevo</h1>
-          <p className="text-gray-400">Accede a la plataforma de HashAudit Pro</p>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#0f0f0f' }}>
+      
+      {/* Subtle background grid */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`,
+        backgroundSize: '40px 40px'
+      }} />
+
+      <div className="w-full max-w-sm relative z-10 animate-in">
+
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div style={{
+            width: 48, height: 48, background: '#3ECF8E', borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 16px', fontWeight: 800, fontSize: 22, color: '#000'
+          }}>D</div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#ededed', marginBottom: 6 }}>
+            Iniciar Sesión
+          </h1>
+          <p style={{ color: '#666', fontSize: 14 }}>
+            Accede a tu panel de auditoría
+          </p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
-          <form action={formAction} className="space-y-6">
+        {/* Card */}
+        <div className="sb-card" style={{ padding: 28 }}>
+          <form action={formAction} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             
             {state?.error && (
-              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center animate-in zoom-in-95">
+              <div style={{
+                padding: '10px 14px', background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.25)', borderRadius: 6,
+                color: '#f87171', fontSize: 13, textAlign: 'center'
+              }}>
                 {state.error}
               </div>
             )}
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Correo Electrónico</label>
-                <input 
-                  type="email" 
-                  name="email"
-                  required
-                  placeholder="empresa@ejemplo.com"
-                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Contraseña</label>
-                <input 
-                  type="password" 
-                  name="password"
-                  required
-                  placeholder="••••••••"
-                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-white"
-                />
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 13, color: '#9e9e9e', fontWeight: 500 }}>
+                Correo Electrónico
+              </label>
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="empresa@ejemplo.com"
+                className="sb-input"
+              />
             </div>
 
-            <button 
-              type="submit" 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 13, color: '#9e9e9e', fontWeight: 500 }}>
+                Contraseña
+              </label>
+              <input
+                type="password"
+                name="password"
+                required
+                placeholder="••••••••"
+                className="sb-input"
+              />
+            </div>
+
+            <button
+              type="submit"
               disabled={isPending}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3.5 px-4 rounded-xl transition-all shadow-lg hover:shadow-blue-500/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="sb-btn-primary"
+              style={{ width: '100%', justifyContent: 'center', padding: '11px 18px', marginTop: 4 }}
             >
-              {isPending ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Iniciar Sesión
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
+              {isPending ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+              {isPending ? 'Verificando...' : 'Iniciar Sesión'}
             </button>
-            
           </form>
 
-          <div className="mt-8 text-center text-sm text-gray-400">
+          <hr className="sb-divider" style={{ margin: '20px 0' }} />
+
+          <p style={{ textAlign: 'center', fontSize: 13, color: '#666' }}>
             ¿No tienes una cuenta?{' '}
-            <Link href="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-              Regístrate ahora
+            <Link href="/register" style={{ color: '#3ECF8E', textDecoration: 'none', fontWeight: 500 }}>
+              Registrar empresa
             </Link>
-          </div>
+          </p>
         </div>
 
+        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: '#444' }}>
+          DocAudit — Plataforma de Auditoría Inmutable
+        </p>
       </div>
     </div>
   )

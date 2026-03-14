@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { uploadDocument } from '@/app/actions/documentActions'
-import { UploadCloud, File as FileIcon, Loader2, CheckCircle2 } from 'lucide-react'
+import { UploadCloud, File as FileIcon, Loader2, CheckCircle2, X } from 'lucide-react'
 
 export default function UploadDocumentForm() {
   const [isDragging, setIsDragging] = useState(false)
@@ -13,33 +13,22 @@ export default function UploadDocumentForm() {
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = () => {
-    setIsDragging(false)
-  }
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true) }
+  const handleDragLeave = () => setIsDragging(false)
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0])
-    }
+    if (e.dataTransfer.files?.[0]) setFile(e.dataTransfer.files[0])
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-    }
+    if (e.target.files?.[0]) setFile(e.target.files[0])
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!file || !title) return
-
     setIsUploading(true)
     setError(null)
     setSuccess(null)
@@ -52,117 +41,132 @@ export default function UploadDocumentForm() {
     try {
       const result = await uploadDocument(formData)
       if (result.success) {
-        setSuccess('Documento y Hash registrados en la blockchain (BD) exitosamente.')
-        setFile(null)
-        setTitle('')
-        setDescription('')
+        setSuccess('Documento registrado con hash SHA-256 exitosamente.')
+        setFile(null); setTitle(''); setDescription('')
       } else {
         setError(result.error || 'Error al subir documento')
       }
-    } catch (err) {
-      setError('Error inesperado')
+    } catch {
+      setError('Error inesperado al procesar el archivo.')
     } finally {
       setIsUploading(false)
     }
   }
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl w-full max-w-xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6 text-white flex items-center gap-2">
-        <UploadCloud className="w-6 h-6 text-blue-400" />
-        Registrar Documento
-      </h2>
+    <div>
+      {/* Section label */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <UploadCloud size={16} color="#3ECF8E" />
+        <h2 style={{ fontSize: 14, fontWeight: 600, color: '#ededed' }}>Registrar Documento</h2>
+      </div>
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/50 text-red-200 p-4 rounded-lg mb-6">
-          {error}
-        </div>
-      )}
+      <div className="sb-card" style={{ padding: 20 }}>
 
-      {success && (
-        <div className="bg-green-500/10 border border-green-500/50 text-green-200 p-4 rounded-lg mb-6 flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 mt-0.5 text-green-400" />
-          <p>{success}</p>
-        </div>
-      )}
+        {error && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            padding: '10px 14px', background: 'rgba(239,68,68,0.07)',
+            border: '1px solid rgba(239,68,68,0.2)', borderRadius: 6,
+            color: '#f87171', fontSize: 13, marginBottom: 16
+          }}>
+            <X size={14} style={{ marginTop: 1, flexShrink: 0 }} />
+            {error}
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Título del Documento</label>
-          <input
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-gray-500"
-            placeholder="Ej. Contrato de Arrendamiento 2024"
-          />
-        </div>
+        {success && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            padding: '10px 14px', background: 'rgba(62,207,142,0.07)',
+            border: '1px solid rgba(62,207,142,0.2)', borderRadius: 6,
+            color: '#3ECF8E', fontSize: 13, marginBottom: 16
+          }}>
+            <CheckCircle2 size={14} style={{ marginTop: 1, flexShrink: 0 }} />
+            {success}
+          </div>
+        )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Descripción (Opcional)</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-gray-500 min-h-[100px]"
-            placeholder="Detalles sobre el documento..."
-          />
-        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          
+          <div>
+            <label style={{ display: 'block', fontSize: 13, color: '#9e9e9e', marginBottom: 6, fontWeight: 500 }}>
+              Título del Documento
+            </label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Ej. Contrato de Arrendamiento 2024"
+              className="sb-input"
+            />
+          </div>
 
-        <div 
-          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-white/20 hover:border-white/40'} ${file ? 'bg-white/5' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <input
-            type="file"
-            id="file-upload"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center gap-4">
-            {file ? (
-              <>
-                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <FileIcon className="w-8 h-8 text-blue-400" />
-                </div>
-                <div className="text-gray-300">
-                  <span className="font-semibold text-white">{file.name}</span>
-                  <p className="text-sm text-gray-400 mt-1">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-                  <UploadCloud className="w-8 h-8 text-gray-400" />
-                </div>
-                <div>
-                  <p className="text-gray-300 font-medium">Haz clic para subir o arrastra el archivo aquí</p>
-                  <p className="text-sm text-gray-500 mt-1">Soporta cualquier tipo de archivo</p>
-                </div>
-              </>
-            )}
-          </label>
-        </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, color: '#9e9e9e', marginBottom: 6, fontWeight: 500 }}>
+              Descripción <span style={{ color: '#444' }}>(Opcional)</span>
+            </label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Detalles adicionales sobre este documento..."
+              rows={3}
+              className="sb-input"
+              style={{ resize: 'vertical', minHeight: 72 }}
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={!file || !title || isUploading}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isUploading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Procesando y Generando Hash...
-            </>
-          ) : (
-            'Subir y Registrar Documento'
-          )}
-        </button>
-      </form>
+          {/* Drop Zone */}
+          <div>
+            <input type="file" id="file-upload" className="hidden" onChange={handleFileChange} />
+            <label
+              htmlFor="file-upload"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                border: `1px dashed ${isDragging ? '#3ECF8E' : file ? 'rgba(62,207,142,0.2)' : 'rgba(255,255,255,0.12)'}`,
+                borderRadius: 8, padding: file ? '16px' : '28px 20px',
+                cursor: 'pointer', transition: 'all 0.15s',
+                background: isDragging ? 'rgba(62,207,142,0.04)' : file ? 'rgba(62,207,142,0.04)' : 'transparent',
+                textAlign: 'center', gap: 8
+              }}
+            >
+              {file ? (
+                <>
+                  <FileIcon size={18} color="#3ECF8E" />
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: '#ededed' }}>{file.name}</p>
+                    <p style={{ fontSize: 12, color: '#555', marginTop: 2 }}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <UploadCloud size={22} color="#444" />
+                  <div>
+                    <p style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>Arrastra el archivo aquí o haz clic</p>
+                    <p style={{ fontSize: 12, color: '#444', marginTop: 4 }}>PDF, DOCX, XLSX, PNG — cualquier formato</p>
+                  </div>
+                </>
+              )}
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={!file || !title || isUploading}
+            className="sb-btn-primary"
+            style={{ width: '100%', justifyContent: 'center', padding: '10px 18px' }}
+          >
+            {isUploading
+              ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Generando Hash...</>
+              : 'Registrar Documento'
+            }
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

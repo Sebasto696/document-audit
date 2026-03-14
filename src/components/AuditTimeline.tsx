@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef } from 'react'
 import { uploadNewVersion } from '@/app/actions/documentActions'
 import { format } from 'date-fns'
-import { FileText, ShieldCheck, Activity, User as UserIcon, UploadCloud, Loader2 } from 'lucide-react'
+import { FileText, ShieldCheck, Activity, User as UserIcon, UploadCloud, Loader2, GitCommitHorizontal, ArrowUpCircle } from 'lucide-react'
 
 type DocumentProps = {
   document: {
@@ -29,11 +29,18 @@ type TimelineProps = {
   }[]
 }
 
-export function DocumentCard({ 
-  document, 
-  isSelected, 
+const ACTION_STYLES: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  UPLOADED: { label: 'Subida Inicial', color: '#3ECF8E', bg: 'rgba(62,207,142,0.08)', border: 'rgba(62,207,142,0.2)' },
+  VERSION_UPDATED: { label: 'Nueva Versión', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.2)' },
+  VERIFIED: { label: 'Verificado', color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.2)' },
+  MODIFIED: { label: 'Modificado', color: '#fb923c', bg: 'rgba(251,146,60,0.08)', border: 'rgba(251,146,60,0.2)' },
+}
+
+export function DocumentCard({
+  document,
+  isSelected,
   onClick,
-  showUpdateForm = false 
+  showUpdateForm = false
 }: DocumentProps & { isSelected: boolean, onClick: () => void, showUpdateForm?: boolean }) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -41,122 +48,188 @@ export function DocumentCard({
   const formRef = useRef<HTMLFormElement>(null)
 
   const handleUploadNewVersion = async (formData: FormData) => {
-    setError(null)
-    setSuccessMsg(null)
-    
+    setError(null); setSuccessMsg(null)
     startTransition(async () => {
       const response = await uploadNewVersion(document.id, formData)
       if (response.success) {
-        setSuccessMsg("¡Nueva versión subida con éxito!")
+        setSuccessMsg('¡Nueva versión registrada!')
         if (formRef.current) formRef.current.reset()
       } else {
-        setError(response.error || "Error desconocido al actualizar la versión.")
+        setError(response.error || 'Error desconocido')
       }
     })
   }
 
+  const isVersioned = document.status === 'VERSION_UPDATED'
+
   return (
-    <div 
-      className={`p-5 rounded-2xl transition-all border ${isSelected ? 'bg-blue-500/20 border-blue-500/50 shadow-lg shadow-blue-500/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+    <div
+      style={{
+        background: isSelected ? 'rgba(62,207,142,0.04)' : '#1c1c1c',
+        border: `1px solid ${isSelected ? 'rgba(62,207,142,0.25)' : 'rgba(255,255,255,0.07)'}`,
+        borderRadius: 8,
+        transition: 'all 0.15s ease',
+        overflow: 'hidden'
+      }}
     >
-      <div 
+      {/* Card Header — clickable */}
+      <div
         onClick={onClick}
-        className="flex items-start justify-between cursor-pointer"
+        style={{ padding: '14px 16px', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}
       >
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-gray-400'}`}>
-            <FileText className="w-6 h-6" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 6, flexShrink: 0,
+            background: isSelected ? 'rgba(62,207,142,0.1)' : 'rgba(255,255,255,0.04)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <FileText size={16} color={isSelected ? '#3ECF8E' : '#666'} />
           </div>
-          <div>
-            <h3 className="font-semibold text-white">{document.title}</h3>
-            <p className="text-sm text-gray-400">{format(new Date(document.createdAt), 'dd MMM yyyy, HH:mm')}</p>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: '#ededed', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {document.title}
+            </p>
+            <p style={{ fontSize: 12, color: '#555', marginTop: 1 }}>
+              {format(new Date(document.createdAt), 'dd MMM yyyy')}
+            </p>
           </div>
-        </div>
-        <div className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-medium flex items-center gap-1">
-          <ShieldCheck className="w-3 h-3" />
-          Verificado
-        </div>
-      </div>
-      
-      <div className="mt-4 pt-4 border-t border-white/10">
-        <div className="flex items-center gap-2 text-sm text-gray-300">
-          <UserIcon className="w-4 h-4 text-gray-500" />
-          <span className="text-gray-400">Firmado por:</span> {document.uploader.name}
-        </div>
-        <div className="mt-2 text-xs font-mono bg-black/40 p-2 rounded text-gray-400 truncate break-all">
-          <span className="text-blue-400 font-semibold">Hash Actual (v{document.status === 'VERSION_UPDATED' ? '2+' : '1'}):</span> {document.currentHash}
         </div>
 
-        {/* Update Form - Only visible when selected and authorized */}
-        {isSelected && showUpdateForm && (
-          <div className="mt-4 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2">
-             <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
-               <UploadCloud className="w-4 h-4 text-indigo-400" />
-               Subir Nueva Versión
-             </h4>
-             
-             {error && <div className="text-xs text-red-400 mb-2 p-2 bg-red-500/10 rounded">{error}</div>}
-             {successMsg && <div className="text-xs text-green-400 mb-2 p-2 bg-green-500/10 rounded">{successMsg}</div>}
-
-             <form ref={formRef} action={handleUploadNewVersion} className="flex gap-2 items-center">
-                <input 
-                  type="file" 
-                  name="file" 
-                  required 
-                  className="text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-white/10 file:text-white hover:file:bg-white/20 w-full"
-                />
-                <button 
-                  type="submit" 
-                  disabled={isPending}
-                  className="shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded transition-colors disabled:opacity-50 flex items-center gap-1"
-                >
-                  {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Actualizar'}
-                </button>
-             </form>
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+          <span style={{
+            padding: '2px 7px', borderRadius: 4, fontSize: 11, fontWeight: 500,
+            background: 'rgba(62,207,142,0.08)', color: '#3ECF8E',
+            border: '1px solid rgba(62,207,142,0.15)'
+          }}>
+            {isVersioned ? 'v2+' : 'v1'}
+          </span>
+          <ShieldCheck size={13} color="#3ECF8E" />
+        </div>
       </div>
+
+      {/* Hash - always visible */}
+      <div style={{ padding: '0 16px 12px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+          <UserIcon size={11} color="#444" />
+          <span style={{ fontSize: 12, color: '#555' }}>{document.uploader.name}</span>
+        </div>
+        <p className="sb-mono" style={{ fontSize: 10.5, wordBreak: 'break-all', color: '#444', lineHeight: 1.6 }}>
+          {document.currentHash}
+        </p>
+      </div>
+
+      {/* Version Update Form — Only shows when selected */}
+      {isSelected && showUpdateForm && (
+        <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.04)', background: '#181818' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+            <ArrowUpCircle size={13} color="#60a5fa" />
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#9e9e9e' }}>Subir nueva versión</span>
+          </div>
+
+          {error && <p style={{ fontSize: 12, color: '#f87171', marginBottom: 8, padding: '6px 10px', background: 'rgba(239,68,68,0.07)', borderRadius: 4, border: '1px solid rgba(239,68,68,0.15)' }}>{error}</p>}
+          {successMsg && <p style={{ fontSize: 12, color: '#3ECF8E', marginBottom: 8, padding: '6px 10px', background: 'rgba(62,207,142,0.07)', borderRadius: 4, border: '1px solid rgba(62,207,142,0.15)' }}>{successMsg}</p>}
+
+          <form ref={formRef} action={handleUploadNewVersion} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              type="file"
+              name="file"
+              required
+              style={{ flex: 1, fontSize: 12, color: '#888', minWidth: 0 }}
+            />
+            <button
+              type="submit"
+              disabled={isPending}
+              className="sb-btn-outline"
+              style={{ fontSize: 12, padding: '6px 12px', flexShrink: 0 }}
+            >
+              {isPending ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : 'Subir'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
 
 export function AuditTimeline({ history }: TimelineProps) {
-  if (!history || history.length === 0) return <div className="text-gray-400 p-8 text-center bg-white/5 rounded-2xl border border-white/10">No hay historial para este documento.</div>
+  if (!history || history.length === 0) {
+    return (
+      <div style={{
+        background: '#1c1c1c', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8,
+        padding: '48px 24px', textAlign: 'center', color: '#444', fontSize: 14
+      }}>
+        No hay eventos en el historial de este documento.
+      </div>
+    )
+  }
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative">
-      <h2 className="text-xl font-semibold mb-8 text-white flex items-center gap-2">
-        <Activity className="w-5 h-5 text-indigo-400" />
-        Línea de Tiempo de Auditoría (Inmutable)
-      </h2>
-      
-      <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/20 before:to-transparent">
-        {history.map((log, index) => (
-          <div key={log.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#0f172a] bg-indigo-500 text-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-lg z-10">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            
-            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors shadow-lg">
-              <div className="flex items-center justify-between space-x-2 mb-1">
-                <div className="font-bold text-white flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded text-xs uppercase tracking-wider">{log.action}</span>
+    <div>
+      {/* Section label */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <Activity size={15} color="#3ECF8E" />
+        <h3 style={{ fontSize: 14, fontWeight: 600 }}>Línea de Tiempo de Auditoría</h3>
+        <span style={{ fontSize: 12, color: '#555' }}>— Registro Inmutable</span>
+      </div>
+
+      <div className="sb-card" style={{ overflow: 'hidden' }}>
+        {history.map((log, index) => {
+          const style = ACTION_STYLES[log.action] || ACTION_STYLES['UPLOADED']
+          const isLast = index === history.length - 1
+
+          return (
+            <div key={log.id} style={{
+              padding: '16px 20px',
+              borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)',
+              display: 'flex', gap: 14
+            }}>
+              {/* Left: Timeline dot */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: style.bg, border: `1px solid ${style.border}`
+                }}>
+                  {log.action === 'UPLOADED' ? <GitCommitHorizontal size={13} color={style.color} /> : <ArrowUpCircle size={13} color={style.color} />}
                 </div>
-                <time className="text-sm font-medium text-gray-400">{format(new Date(log.timestamp), 'dd MMM yyyy, HH:mm')}</time>
+                {!isLast && <div style={{ width: 1, flex: 1, background: 'rgba(255,255,255,0.06)', minHeight: 16 }} />}
               </div>
-              <div className="text-sm text-gray-300 mt-3 mb-2 flex items-center gap-2">
-                 <UserIcon className="w-4 h-4 text-gray-400" />
-                 {log.user.name} <span className="text-gray-500">({log.user.role})</span>
-              </div>
-              {log.details && <div className="text-sm text-gray-400 mb-3">{log.details}</div>}
-              
-              <div className="bg-black/50 p-3 rounded-lg border border-white/5 mt-3">
-                <p className="text-xs text-indigo-400 font-semibold mb-1">Estado del Hash (SHA-256):</p>
-                <p className="text-xs font-mono text-gray-300 break-all">{log.hashValue}</p>
+
+              {/* Right: Content */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{
+                    fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4,
+                    color: style.color, background: style.bg, border: `1px solid ${style.border}`,
+                    textTransform: 'uppercase', letterSpacing: '0.05em'
+                  }}>
+                    {style.label}
+                  </span>
+                  <time style={{ fontSize: 12, color: '#555' }}>
+                    {format(new Date(log.timestamp), 'dd MMM yyyy, HH:mm')}
+                  </time>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                  <UserIcon size={11} color="#444" />
+                  <span style={{ fontSize: 12, color: '#777' }}>{log.user.name}</span>
+                  <span style={{ fontSize: 12, color: '#444' }}>— {log.user.role}</span>
+                </div>
+
+                {log.details && (
+                  <p style={{ fontSize: 13, color: '#666', marginBottom: 10 }}>{log.details}</p>
+                )}
+
+                <div style={{
+                  background: '#151515', borderRadius: 6, padding: '8px 12px',
+                  border: '1px solid rgba(255,255,255,0.04)'
+                }}>
+                  <p style={{ fontSize: 11, color: '#444', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>SHA-256</p>
+                  <p className="sb-mono" style={{ wordBreak: 'break-all', fontSize: 11, lineHeight: 1.7 }}>{log.hashValue}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
