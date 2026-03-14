@@ -11,7 +11,7 @@ export async function register(formData: FormData) {
   const password = formData.get('password') as string
 
   if (!name || !email || !password) {
-    return { error: 'Please fill out all fields.' }
+    return { error: 'Por favor, completa todos los campos.' }
   }
 
   // Check if user exists
@@ -20,7 +20,7 @@ export async function register(formData: FormData) {
   })
 
   if (existingUser) {
-    return { error: 'A user with this email already exists.' }
+    return { error: 'Ya existe un usuario con este correo electrónico.' }
   }
 
   try {
@@ -38,7 +38,7 @@ export async function register(formData: FormData) {
     await createSession(user.id, user.role, user.name)
     
   } catch (error) {
-    return { error: 'Failed to create account.' }
+    return { error: 'Error al crear la cuenta. Intenta nuevamente.' }
   }
 
   redirect('/')
@@ -49,7 +49,7 @@ export async function login(formData: FormData) {
   const password = formData.get('password') as string
 
   if (!email || !password) {
-    return { error: 'Please provide both email and password.' }
+    return { error: 'Por favor, ingresa correo y contraseña.' }
   }
 
   const user = await prisma.user.findUnique({
@@ -57,13 +57,13 @@ export async function login(formData: FormData) {
   })
 
   if (!user || !user.password) {
-    return { error: 'Invalid credentials.' }
+    return { error: 'Credenciales inválidas.' }
   }
 
   const isValidPassword = await bcrypt.compare(password, user.password)
 
   if (!isValidPassword) {
-    return { error: 'Invalid credentials.' }
+    return { error: 'Credenciales inválidas.' }
   }
 
   await createSession(user.id, user.role, user.name)

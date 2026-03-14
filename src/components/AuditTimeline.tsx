@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef } from 'react'
 import { uploadNewVersion } from '@/app/actions/documentActions'
 import { format } from 'date-fns'
-import { FileText, ShieldCheck, Activity, User as UserIcon, UploadCloud, Loader2, GitCommitHorizontal, ArrowUpCircle } from 'lucide-react'
+import { FileText, ShieldCheck, Activity, User as UserIcon, Loader2, GitCommitHorizontal, ArrowUpCircle, FileDown } from 'lucide-react'
 
 type DocumentProps = {
   document: {
@@ -50,12 +50,17 @@ export function DocumentCard({
   const handleUploadNewVersion = async (formData: FormData) => {
     setError(null); setSuccessMsg(null)
     startTransition(async () => {
-      const response = await uploadNewVersion(document.id, formData)
-      if (response.success) {
-        setSuccessMsg('¡Nueva versión registrada!')
-        if (formRef.current) formRef.current.reset()
-      } else {
-        setError(response.error || 'Error desconocido')
+      try {
+        const response = await uploadNewVersion(document.id, formData)
+        if (response.success) {
+          setSuccessMsg('¡Nueva versión registrada correctamente! El historial ha sido actualizado.')
+          if (formRef.current) formRef.current.reset()
+        } else {
+          setError(response.error || 'Ocurrió un error al procesar el archivo.')
+        }
+      } catch (err) {
+        console.error('Version upload error:', err)
+        setError('Error de conexión o fallo inesperado al subir la nueva versión.')
       }
     })
   }
@@ -117,6 +122,27 @@ export function DocumentCard({
           {document.currentHash}
         </p>
       </div>
+
+      {/* Download Certificate Button — shows when selected */}
+      {isSelected && (
+        <div style={{ padding: '8px 16px 12px', borderTop: '1px solid rgba(255,255,255,0.04)', background: '#181818' }}>
+          <a
+            href={`/api/certificate?documentId=${document.id}`}
+            download
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '7px 14px', borderRadius: 6, fontSize: 12, fontWeight: 500,
+              color: '#3ECF8E', textDecoration: 'none',
+              border: '1px solid rgba(62,207,142,0.25)',
+              background: 'rgba(62,207,142,0.05)',
+              transition: 'all 0.15s'
+            }}
+          >
+            <FileDown size={13} />
+            Descargar Certificado PDF
+          </a>
+        </div>
+      )}
 
       {/* Version Update Form — Only shows when selected */}
       {isSelected && showUpdateForm && (

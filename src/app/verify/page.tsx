@@ -3,7 +3,7 @@
 import { useState, useRef, DragEvent, ChangeEvent } from 'react'
 import { verifyDocumentHash, VerificationResult } from '@/app/actions/verifyActions'
 import { calculateFileHash } from '@/lib/hashFile'
-import { CheckCircle2, XCircle, UploadCloud, ArrowLeft, Loader2, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, XCircle, UploadCloud, ArrowLeft, Loader2, ShieldCheck, FileDown } from 'lucide-react'
 import Link from 'next/link'
 
 export default function VerifyPage() {
@@ -180,7 +180,23 @@ export default function VerifyPage() {
             </div>
 
             {/* Actions */}
-            <div style={{ padding: '16px 28px', background: '#181818', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ padding: '16px 28px', background: '#181818', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {result.success && (
+                <a
+                  href={`/api/certificate?hash=${result.document.hash}`}
+                  download
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '8px 16px', borderRadius: 6, fontSize: 13, fontWeight: 500,
+                    color: '#000', textDecoration: 'none',
+                    background: '#3ECF8E',
+                    transition: 'opacity 0.15s'
+                  }}
+                >
+                  <FileDown size={14} />
+                  Descargar Certificado PDF
+                </a>
+              )}
               <button onClick={reset} className="sb-btn-outline" style={{ fontSize: 13 }}>
                 Verificar otro archivo
               </button>

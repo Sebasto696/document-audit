@@ -11,7 +11,7 @@ export async function uploadDocument(formData: FormData) {
   try {
     const session = await verifySession()
     if (!session || !session.userId) {
-      return { success: false, error: 'Unauthorized user' }
+      return { success: false, error: 'Usuario no autorizado' }
     }
 
     const file = formData.get('file') as File | null
@@ -19,7 +19,7 @@ export async function uploadDocument(formData: FormData) {
     const description = (formData.get('description') as string) || null
 
     if (!file || !title) {
-      return { success: false, error: 'File and title are required' }
+      return { success: false, error: 'El archivo y el título son obligatorios.' }
     }
 
     // 1. Convert file to buffer and calculate SHA-256 Hash
@@ -54,7 +54,7 @@ export async function uploadDocument(formData: FormData) {
             action: 'UPLOADED',
             hashValue: currentHash,
             userId: session.userId,
-            details: 'Original document uploaded'
+            details: 'Documento original registrado'
           }
         }
       }
@@ -65,9 +65,9 @@ export async function uploadDocument(formData: FormData) {
   } catch (error: any) {
     console.error('Error uploading document:', error)
     if (error.code === 'P2002') {
-      return { success: false, error: 'A document with the exact same hash already exists' }
+      return { success: false, error: 'Ya existe un documento con este mismo hash.' }
     }
-    return { success: false, error: error.message || 'Error occurred' }
+    return { success: false, error: error.message || 'Ocurrió un error inesperado al subir el documento.' }
   }
 }
 

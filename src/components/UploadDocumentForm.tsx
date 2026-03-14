@@ -28,7 +28,17 @@ export default function UploadDocumentForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!file || !title) return
+    
+    if (!file) {
+      setError('Debes seleccionar un archivo.')
+      return
+    }
+
+    if (!title.trim()) {
+      setError('El título es obligatorio para identificar el registro.')
+      return
+    }
+
     setIsUploading(true)
     setError(null)
     setSuccess(null)
@@ -41,13 +51,14 @@ export default function UploadDocumentForm() {
     try {
       const result = await uploadDocument(formData)
       if (result.success) {
-        setSuccess('Documento registrado con hash SHA-256 exitosamente.')
+        setSuccess('¡Documento registrado con éxito! El hash SHA-256 ya forma parte del registro inmutable.')
         setFile(null); setTitle(''); setDescription('')
       } else {
-        setError(result.error || 'Error al subir documento')
+        setError(result.error || 'No se pudo completar el registro. Intenta nuevamente.')
       }
-    } catch {
-      setError('Error inesperado al procesar el archivo.')
+    } catch (err: any) {
+      console.error('Frontend upload catch:', err)
+      setError('Ocurrió un fallo inesperado en el navegador o en la conexión. Revisa tu internet e intenta subirlo de nuevo.')
     } finally {
       setIsUploading(false)
     }
@@ -156,12 +167,12 @@ export default function UploadDocumentForm() {
 
           <button
             type="submit"
-            disabled={!file || !title || isUploading}
+            disabled={isUploading}
             className="sb-btn-primary"
-            style={{ width: '100%', justifyContent: 'center', padding: '10px 18px' }}
+            style={{ width: '100%', justifyContent: 'center', padding: '10px 18px', opacity: (!file || !title) ? 0.6 : 1 }}
           >
             {isUploading
-              ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Generando Hash...</>
+              ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Generando Firma...</>
               : 'Registrar Documento'
             }
           </button>
