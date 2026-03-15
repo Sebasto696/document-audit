@@ -1,9 +1,9 @@
 'use server'
 
-import prisma from '@/lib/prisma'
+import { getSupabaseServerClient } from '@/lib/supabase'
 
 export type VerificationResult = 
-  | { success: true; document: { title: string; uploaderName: string; createdAt: Date; hash: string } }
+  | { success: true; document: { title: string; uploaderName: string; createdAt: string; hash: string } }
   | { success: false; error: string }
 
 /**
@@ -13,14 +13,18 @@ export type VerificationResult =
  */
 export async function verifyDocumentHash(hash: string): Promise<VerificationResult> {
   try {
-    const document = await prisma.document.findUnique({
-      where: { currentHash: hash },
-      include: {
-        uploader: {
-          select: { name: true } // Only fetch the company's name for privacy
-        }
-      }
-    })
+    const supabase = getSupabaseServerClient()
+
+    const { data: document, error } = await supabase
+      .from('documents')
+      .select('title, current_hash, created_at, uploader:users(name)')
+      .eq('current_hash', hash)
+      .maybeSingle()
+
+    if (error) {
+      console.error('Error verifying document:', error)
+      return { success: false, error: 'Ocurrió un error al intentar verificar el documento. Intenta nuevamente.' }
+    }
 
     if (!document) {
       return { 
@@ -34,9 +38,9 @@ export async function verifyDocumentHash(hash: string): Promise<VerificationResu
       success: true,
       document: {
         title: document.title,
-        uploaderName: document.uploader.name,
-        createdAt: document.createdAt,
-        hash: document.currentHash
+        uploaderName: document.uploader?.name || '',
+        createdAt: document.created_at,
+        hash: document.current_hash
       }
     }
 

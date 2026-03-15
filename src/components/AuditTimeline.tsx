@@ -15,7 +15,7 @@ type DocumentProps = {
     status: string
     createdAt: Date
     updatedAt: Date
-    uploader: { name: string, role: string }
+    uploader: { name: string, email: string, role: string }
   }
 }
 
@@ -126,6 +126,9 @@ export function DocumentCard({
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
           <UserIcon size={11} color="#444" />
           <span style={{ fontSize: 12, color: '#555' }}>{document.uploader.name}</span>
+        </div>
+        <div style={{ fontSize: 11, color: '#666', marginBottom: 6 }}>
+          {document.uploader.email}
         </div>
         <p className="sb-mono" style={{ fontSize: 10.5, wordBreak: 'break-all', color: '#444', lineHeight: 1.6 }}>
           {document.currentHash}

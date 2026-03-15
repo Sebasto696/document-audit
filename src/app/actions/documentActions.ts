@@ -4,8 +4,63 @@ import { revalidatePath } from 'next/cache'
 import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
-import prisma from '@/lib/prisma'
+import { getSupabaseServerClient } from '@/lib/supabase'
 import { verifySession } from '@/lib/session'
+
+type UserRow = {
+  id: string
+  name: string
+  email: string
+  role: string
+}
+
+type DocumentRow = {
+  id: string
+  title: string
+  description: string | null
+  category: string
+  file_url: string
+  current_hash: string
+  status: string
+  company_id: string
+  uploader_id: string
+  created_at: string
+  updated_at: string
+  uploader?: UserRow | null
+}
+
+type AuditLogRow = {
+  id: string
+  action: string
+  hash_value: string
+  timestamp: string
+  details: string | null
+  user?: UserRow | null
+}
+
+const mapDocumentRow = (row: DocumentRow) => ({
+  id: row.id,
+  title: row.title,
+  description: row.description,
+  category: row.category,
+  fileUrl: row.file_url,
+  currentHash: row.current_hash,
+  status: row.status,
+  companyId: row.company_id,
+  uploaderId: row.uploader_id,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+  uploader: row.uploader ? { name: row.uploader.name, email: row.uploader.email, role: row.uploader.role } : undefined,
+})
+
+const mapAuditLogRow = (row: AuditLogRow) => ({
+  id: row.id,
+  action: row.action,
+  hashValue: row.hash_value,
+  timestamp: row.timestamp,
+  details: row.details,
+  user: row.user ? { name: row.user.name, role: row.user.role } : { name: '', role: '' },
+})
 
 export async function uploadDocument(formData: FormData) {
   try {
@@ -13,6 +68,8 @@ export async function uploadDocument(formData: FormData) {
     if (!session || !session.userId) {
       return { success: false, error: 'Usuario no autorizado' }
     }
+
+    const supabase = getSupabaseServerClient()
 
     const file = formData.get('file') as File | null
     const title = formData.get('title') as string
@@ -43,33 +100,46 @@ export async function uploadDocument(formData: FormData) {
     const fileUrl = `/uploads/${uniqueFilename}`
 
     // 4. Create internal Document record and Audit Log transiton
-    const document = await prisma.document.create({
-      data: {
+    const { data: document, error: documentError } = await supabase
+      .from('documents')
+      .insert({
         title,
         description,
         category,
-        fileUrl,
-        currentHash,
-        companyId: session.companyId,
-        uploaderId: session.userId,
-        history: {
-          create: {
-            action: 'UPLOADED',
-            hashValue: currentHash,
-            userId: session.userId,
-            details: 'Documento original registrado'
-          }
-        }
+        file_url: fileUrl,
+        current_hash: currentHash,
+        company_id: session.companyId,
+        uploader_id: session.userId,
+        status: 'UPLOADED',
+      })
+      .select('id, title, description, category, file_url, current_hash, status, company_id, uploader_id, created_at, updated_at')
+      .single()
+
+    if (documentError || !document) {
+      console.error('Error uploading document:', documentError)
+      if (documentError?.code === '23505') {
+        return { success: false, error: 'Ya existe un documento con este mismo hash.' }
       }
+      return { success: false, error: 'Ocurrió un error inesperado al subir el documento.' }
+    }
+
+    const { error: auditError } = await supabase.from('audit_logs').insert({
+      document_id: document.id,
+      action: 'UPLOADED',
+      hash_value: currentHash,
+      user_id: session.userId,
+      details: 'Documento original registrado',
     })
 
+    if (auditError) {
+      console.error('Error uploading document audit log:', auditError)
+      return { success: false, error: 'Ocurrió un error al registrar el historial.' }
+    }
+
     revalidatePath('/')
-    return { success: true, document }
+    return { success: true, document: mapDocumentRow(document as DocumentRow) }
   } catch (error: any) {
     console.error('Error uploading document:', error)
-    if (error.code === 'P2002') {
-      return { success: false, error: 'Ya existe un documento con este mismo hash.' }
-    }
     return { success: false, error: error.message || 'Ocurrió un error inesperado al subir el documento.' }
   }
 }
@@ -79,28 +149,52 @@ export async function getDocuments() {
   
   if (!session) return []
 
+  const supabase = getSupabaseServerClient()
+
   // If COMPANY, only show their own documents
   if (session.role === 'COMPANY') {
-    return await prisma.document.findMany({
-      where: { companyId: session.companyId },
-      include: { uploader: true },
-      orderBy: { createdAt: 'desc' }
-    })
+    const { data, error } = await supabase
+      .from('documents')
+      .select('id, title, description, category, file_url, current_hash, status, company_id, uploader_id, created_at, updated_at, uploader:users(name, email, role)')
+      .eq('company_id', session.companyId)
+      .order('created_at', { ascending: false })
+
+    if (error || !data) {
+      console.error('Error fetching documents:', error)
+      return []
+    }
+
+    return data.map((row) => mapDocumentRow(row as DocumentRow))
   }
 
   // If AUDITOR, show all documents cross-companies
-  return await prisma.document.findMany({
-    include: { uploader: true },
-    orderBy: { createdAt: 'desc' }
-  })
+  const { data, error } = await supabase
+    .from('documents')
+    .select('id, title, description, category, file_url, current_hash, status, company_id, uploader_id, created_at, updated_at, uploader:users(name, email, role)')
+    .order('created_at', { ascending: false })
+
+  if (error || !data) {
+    console.error('Error fetching documents:', error)
+    return []
+  }
+
+  return data.map((row) => mapDocumentRow(row as DocumentRow))
 }
 
 export async function getDocumentHistory(documentId: string) {
-  return await prisma.auditLog.findMany({
-    where: { documentId },
-    include: { user: true },
-    orderBy: { timestamp: 'desc' }
-  })
+  const supabase = getSupabaseServerClient()
+  const { data, error } = await supabase
+    .from('audit_logs')
+    .select('id, action, hash_value, timestamp, details, user:users(name, role)')
+    .eq('document_id', documentId)
+    .order('timestamp', { ascending: false })
+
+  if (error || !data) {
+    console.error('Error fetching document history:', error)
+    return []
+  }
+
+  return data.map((row) => mapAuditLogRow(row as AuditLogRow))
 }
 
 export async function uploadNewVersion(documentId: string, formData: FormData) {
@@ -110,17 +204,26 @@ export async function uploadNewVersion(documentId: string, formData: FormData) {
       return { success: false, error: 'Acceso no autorizado' }
     }
 
+    const supabase = getSupabaseServerClient()
+
     const file = formData.get('file') as File | null
     if (!file) {
       return { success: false, error: 'Debes proporcionar un archivo' }
     }
 
     // 1. Verify existence and ownership
-    const existingDoc = await prisma.document.findUnique({
-      where: { id: documentId }
-    })
+    const { data: existingDoc, error: existingDocError } = await supabase
+      .from('documents')
+      .select('id, uploader_id, current_hash')
+      .eq('id', documentId)
+      .maybeSingle()
 
-    if (!existingDoc || existingDoc.uploaderId !== session.userId) {
+    if (existingDocError) {
+      console.error('Error fetching document:', existingDocError)
+      return { success: false, error: 'Ocurrió un error al validar el documento' }
+    }
+
+    if (!existingDoc || existingDoc.uploader_id !== session.userId) {
       return { success: false, error: 'Documento no encontrado o no tienes permisos' }
     }
 
@@ -131,7 +234,7 @@ export async function uploadNewVersion(documentId: string, formData: FormData) {
     hashSum.update(buffer)
     const newHash = hashSum.digest('hex')
 
-    if (newHash === existingDoc.currentHash) {
+    if (newHash === existingDoc.current_hash) {
       return { success: false, error: 'Este archivo es idéntico a la versión actual. El Hash no ha cambiado.' }
     }
 
@@ -143,40 +246,43 @@ export async function uploadNewVersion(documentId: string, formData: FormData) {
     const fileUrl = `/uploads/${uniqueFilename}`
 
     // 4. Update Database within a Transaction
-    const updatedDocument = await prisma.$transaction(async (tx) => {
-      // Update the main document reference
-      const doc = await tx.document.update({
-        where: { id: documentId },
-        data: {
-          currentHash: newHash,
-          fileUrl: fileUrl,
-          status: 'VERSION_UPDATED',
-          title: file.name // Opcionalmente actualizar el titulo si cambió el nombre del archivo
-        }
+    const { data: updatedDocument, error: updatedDocumentError } = await supabase
+      .from('documents')
+      .update({
+        current_hash: newHash,
+        file_url: fileUrl,
+        status: 'VERSION_UPDATED',
+        title: file.name,
       })
+      .eq('id', documentId)
+      .select('id, title, description, category, file_url, current_hash, status, company_id, uploader_id, created_at, updated_at')
+      .single()
 
-      // Insert the immutable history log
-      await tx.auditLog.create({
-        data: {
-          documentId: doc.id,
-          action: 'VERSION_UPDATED',
-          hashValue: newHash,
-          userId: session.userId,
-          details: `Se actualizó a una nueva versión del archivo original`
-        }
-      })
+    if (updatedDocumentError || !updatedDocument) {
+      console.error('Error updating document:', updatedDocumentError)
+      if (updatedDocumentError?.code === '23505') {
+        return { success: false, error: 'Este documento o Hash ya existe en el registro' }
+      }
+      return { success: false, error: 'Ocurrió un error al actualizar el documento' }
+    }
 
-      return doc
+    const { error: auditError } = await supabase.from('audit_logs').insert({
+      document_id: updatedDocument.id,
+      action: 'VERSION_UPDATED',
+      hash_value: newHash,
+      user_id: session.userId,
+      details: 'Se actualizó a una nueva versión del archivo original',
     })
 
+    if (auditError) {
+      console.error('Error updating document audit log:', auditError)
+      return { success: false, error: 'Ocurrió un error al registrar el historial' }
+    }
+
     revalidatePath('/')
-    return { success: true, document: updatedDocument }
+    return { success: true, document: mapDocumentRow(updatedDocument as DocumentRow) }
   } catch (error: any) {
     console.error('Error uploading new version:', error)
-    if (error.code === 'P2002') {
-       return { success: false, error: 'Este documento o Hash ya existe en el registro' }
-    }
     return { success: false, error: 'Ocurrió un error al subir la nueva versión' }
   }
 }
-

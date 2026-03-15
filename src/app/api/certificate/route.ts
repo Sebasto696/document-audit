@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { CertificatePDF } from '@/components/CertificatePDF'
-import prisma from '@/lib/prisma'
+import { getSupabaseServerClient } from '@/lib/supabase'
 import React from 'react'
 
 export const runtime = 'nodejs'
@@ -16,10 +16,17 @@ export async function GET(req: NextRequest) {
   }
 
   // Find the document
-  const document = await prisma.document.findUnique({
-    where: documentId ? { id: documentId } : { currentHash: hash! },
-    include: { uploader: { select: { name: true } } }
-  })
+  const supabase = getSupabaseServerClient()
+  const { data: document, error } = await supabase
+    .from('documents')
+    .select('id, title, current_hash, created_at, status, uploader:users(name)')
+    .match(documentId ? { id: documentId } : { current_hash: hash! })
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error fetching document:', error)
+    return NextResponse.json({ error: 'Error fetching document' }, { status: 500 })
+  }
 
   if (!document) {
     return NextResponse.json({ error: 'Document not found' }, { status: 404 })
@@ -29,9 +36,9 @@ export async function GET(req: NextRequest) {
   const pdfElement = React.createElement(CertificatePDF, {
     data: {
       documentTitle: document.title,
-      uploaderName: document.uploader.name,
-      hash: document.currentHash,
-      createdAt: document.createdAt,
+      uploaderName: document.uploader?.name || '',
+      hash: document.current_hash,
+      createdAt: document.created_at,
       status: document.status,
     }
   })

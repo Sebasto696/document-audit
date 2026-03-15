@@ -1,6 +1,6 @@
 'use server'
 
-import prisma from '@/lib/prisma'
+import { getSupabaseServerClient } from '@/lib/supabase'
 import { createSession, deleteSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import bcrypt from 'bcryptjs'
@@ -14,10 +14,19 @@ export async function register(formData: FormData) {
     return { error: 'Por favor, completa todos los campos.' }
   }
 
+  const supabase = getSupabaseServerClient()
+
   // Check if user exists
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-  })
+  const { data: existingUser, error: existingUserError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (existingUserError) {
+    console.error('Registration error:', existingUserError)
+    return { error: 'Error al validar el usuario. Intenta nuevamente.' }
+  }
 
   if (existingUser) {
     return { error: 'Ya existe un usuario con este correo electrónico.' }
@@ -25,38 +34,36 @@ export async function register(formData: FormData) {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10)
-    
-    // Create or find company and create user in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Find existing company by exact name (case insensitive handling can be complex in SQLite, using exact match for simplicity as requested)
-      let company = await tx.company.findFirst({
-        where: { name }
+
+    const { data: company, error: companyError } = await supabase
+      .from('companies')
+      .upsert({ name }, { onConflict: 'name' })
+      .select('id, name')
+      .single()
+
+    if (companyError || !company) {
+      console.error('Registration error:', companyError)
+      return { error: 'Error al crear la empresa. Intenta nuevamente.' }
+    }
+
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .insert({
+        name,
+        email,
+        password: hashedPassword,
+        role: 'COMPANY',
+        company_id: company.id,
       })
+      .select('id, role, name, company_id')
+      .single()
 
-      // If company doesn't exist, create it
-      if (!company) {
-        company = await tx.company.create({
-          data: {
-            name, 
-          }
-        })
-      }
+    if (userError || !user) {
+      console.error('Registration error:', userError)
+      return { error: 'Error al crear la cuenta. Intenta nuevamente.' }
+    }
 
-      const user = await tx.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-          role: 'COMPANY',
-          companyId: company.id,
-        },
-      })
-
-      return { user, company }
-    })
-
-    await createSession(result.user.id, result.user.role, result.user.name, result.company.id)
-    
+    await createSession(user.id, user.role, user.name, user.company_id)
   } catch (error) {
     console.error('Registration error:', error)
     return { error: 'Error al crear la cuenta. Intenta nuevamente.' }
@@ -73,9 +80,18 @@ export async function login(formData: FormData) {
     return { error: 'Por favor, ingresa correo y contraseña.' }
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  })
+  const supabase = getSupabaseServerClient()
+
+  const { data: user, error: userError } = await supabase
+    .from('users')
+    .select('id, name, email, password, role, company_id')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (userError) {
+    console.error('Login error:', userError)
+    return { error: 'Error al iniciar sesión. Intenta nuevamente.' }
+  }
 
   if (!user || !user.password) {
     return { error: 'Credenciales inválidas.' }
@@ -87,7 +103,7 @@ export async function login(formData: FormData) {
     return { error: 'Credenciales inválidas.' }
   }
 
-  await createSession(user.id, user.role, user.name, user.companyId)
+  await createSession(user.id, user.role, user.name, user.company_id)
   redirect('/')
 }
 
